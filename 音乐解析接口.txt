@@ -1,0 +1,1022 @@
+我有一个音乐解析接口，详情如下：{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "service": "TuneHub",
+    "description": "音乐信息解析服务 - 统一的音乐平台 API 接口",
+    "version": "1.0.0",
+    "endpoints": {
+      "api": {
+        "url": "https://music-dl.sayqz.com/api/",
+        "method": "GET",
+        "description": "主要 API 接口",
+        "parameters": {
+          "source": "音乐平台标识 (如: netease, 聚合搜索时不需要)",
+          "id": "歌曲/歌单/排行榜 ID (除搜索和获取列表外必需)",
+          "type": "请求类型 (info/url/pic/lrc/search/aggregateSearch/playlist/toplist/toplists)",
+          "br": "音质参数 (仅 type=url 时使用, 支持: 128k/320k/flac/flac24bit)",
+          "keyword": "搜索关键词 (仅 type=search/aggregateSearch 时使用)",
+          "limit": "搜索结果数量限制 (仅搜索时使用, 默认20, 聚合搜索默认10)",
+          "page": "页数 (仅搜索时使用, 默认1)"
+        },
+        "examples": {
+          "info": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=info",
+          "url": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=url&br=320k",
+          "pic": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=pic",
+          "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=lrc",
+          "search": "https://music-dl.sayqz.com/api/?source=netease&type=search&keyword=周杰伦&limit=10&page=1",
+          "aggregateSearch": "https://music-dl.sayqz.com/api/?type=aggregateSearch&keyword=周杰伦&limit=5&page=1",
+          "playlist": "https://music-dl.sayqz.com/api/?source=netease&id=2037067301&type=playlist",
+          "toplists": "https://music-dl.sayqz.com/api/?source=netease&type=toplists",
+          "toplist": "https://music-dl.sayqz.com/api/?source=netease&id=19723756&type=toplist"
+        }
+      },
+      "status": {
+        "url": "https://music-dl.sayqz.com/status",
+        "method": "GET",
+        "description": "服务状态查询"
+      },
+      "health": {
+        "url": "https://music-dl.sayqz.com/health",
+        "method": "GET",
+        "description": "健康检查"
+      }
+    },
+    "supportedPlatforms": {
+      "netease": {
+        "name": "网易云音乐",
+        "enabled": true
+      },
+      "kuwo": {
+        "name": "酷我音乐",
+        "enabled": true
+      },
+      "qq": {
+        "name": "QQ音乐",
+        "enabled": true
+      },
+      "kugou": {
+        "name": "酷狗音乐",
+        "enabled": false
+      },
+      "migu": {
+        "name": "咪咕音乐",
+        "enabled": false
+      }
+    },
+    "autoSwitch": {
+      "enabled": true,
+      "description": "当某个平台获取URL失败时，自动尝试其他平台",
+      "responseHeader": "X-Source-Switch: 原平台 -\u003E 新平台"
+    },
+    "aggregateSearch": {
+      "enabled": true,
+      "description": "同时搜索所有平台并混合排列结果",
+      "mixResults": true
+    }
+  },
+  "timestamp": "2025-11-20T09:18:40.745+08:00"
+}
+
+各接口的响应数据示例：
+1、"info": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=info"：
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "name": "爱",
+    "artist": "刘罡",
+    "album": "二人传奇",
+    "url": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=url",
+    "pic": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=pic",
+    "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=lrc"
+  },
+  "timestamp": "2025-11-20T10:14:45.867+08:00"
+}
+2、"url": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=url&br=320k"，返回音乐源数据
+3、"pic": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=pic"，返回图片数据
+4、"lrc": "https://music-dl.sayqz.com/api/?source=netease&id=123456&type=lrc"：
+[32920,7250](32920,540,0)你(33460,380,0)还(33840,470,0)记(34310,160,0)得(34470,1140,0)吗(35610,1000,0) (36610,580,0)记(37190,340,0)忆(37530,300,0)的(37830,270,0)炎(38100,1030,0)夏(39130,1040,0) 
+[40170,2750](40170,310,0)散(40480,340,0)落(40820,300,0)在(41120,350,0)风(41470,340,0)中(41810,290,0)的(42100,30,0) (42130,270,0)已(42400,250,0)蒸(42650,270,0)发
+[42920,4630](42920,310,0)喧(43230,420,0)哗(43650,180,0)的(43830,390,0)都(44220,200,0)已(44420,330,0)沙(44750,1880,0)哑(46630,920,0) 
+[47550,7220](47550,490,0)没(48040,330,0)结(48370,430,0)果(48800,200,0)的(49000,1320,0)花(50320,750,0) (51070,300,0)未(51370,300,0)完(51670,330,0)成(52000,370,0)的(52370,340,0)牵(52710,1210,0)挂(53920,850,0) 
+[54770,2330](54770,240,0)我(55010,260,0)们(55270,270,0)学(55540,330,0)会(55870,360,0)许(56230,230,0)多(56460,340,0)说(56800,300,0)法
+[57100,4790](57100,250,0)来(57350,280,0)掩(57630,380,0)饰(58010,250,0)不(58260,360,0)碰(58620,200,0)的(58820,620,0)伤(59440,1990,0)疤(61430,460,0) 
+[61890,3590](61890,310,0)因(62200,390,0)为(62590,230,0)我(62820,340,0)会(63160,350,0)想(63510,310,0)起(63820,1250,0)你(65070,410,0) 
+[65480,3620](65480,280,0)我(65760,380,0)害(66140,270,0)怕(66410,380,0)面(66790,240,0)对(67030,290,0)自(67320,1220,0)己(68540,560,0) 
+[69100,7120](69100,380,0)我(69480,300,0)的(69780,270,0)意(70050,1420,0)志(71470,400,0)总(71870,530,0)被(72400,370,0)寂(72770,500,0)寞(73270,300,0)吞(73570,2230,0)食(75800,420,0) 
+[76220,3670](76220,320,0)因(76540,410,0)为(76950,210,0)你(77160,380,0)总(77540,290,0)会(77830,290,0)提(78120,1540,0)醒(79660,230,0) 
+[79890,4200](79890,340,0)过(80230,300,0)去(80530,270,0)总(80800,520,0)不(81320,840,0)会(82160,470,0)过(82630,1240,0)去(83870,220,0) 
+[84090,6570](84090,320,0)有(84410,1370,0)种(85780,30,0) (85810,630,0)真(86440,320,0)爱(86760,30,0) (86790,320,0)不(87110,560,0)是(87670,30,0) (87700,310,0)我(88010,2350,0)的(90360,300,0) 
+[90660,7180](90660,560,0)你(91220,310,0)还(91530,440,0)记(91970,140,0)得(92110,1170,0)吗(93280,1040,0) (94320,600,0)记(94920,350,0)忆(95270,270,0)的(95540,260,0)炎(95800,1040,0)夏(96840,1000,0) 
+[97840,2730](97840,310,0)散(98150,370,0)落(98520,310,0)在(98830,320,0)风(99150,330,0)中(99480,240,0)的(99720,330,0)已(100050,270,0)蒸(100320,250,0)发
+[100570,31590](100570,300,0)喧(100870,410,0)哗(101280,140,0)的(101420,400,0)都(101820,190,0)已(102010,290,0)沙(102300,3360,0)哑(105660,26500,0) 
+[132160,7090](132160,540,0)你(132700,300,0)还(133000,470,0)记(133470,210,0)得(133680,1070,0)吗(134750,1000,0) (135750,600,0)记(136350,260,0)忆(136610,310,0)的(136920,280,0)炎(137200,1290,0)夏(138490,760,0) 
+[139250,2690](139250,300,0)散(139550,380,0)落(139930,270,0)在(140200,340,0)风(140540,330,0)中(140870,250,0)的(141120,300,0)已(141420,290,0)蒸(141710,230,0)发
+[141940,4540](141940,320,0)喧(142260,410,0)哗(142670,160,0)的(142830,410,0)都(143240,190,0)已(143430,370,0)沙(143800,1870,0)哑(145670,810,0) 
+[146480,3650](146480,530,0)没(147010,340,0)结(147350,470,0)果(147820,140,0)的(147960,1380,0)花(149340,790,0) 
+[150130,3640](150130,320,0)未(150450,270,0)完(150720,320,0)成(151040,290,0)的(151330,370,0)牵(151700,1240,0)挂(152940,830,0) 
+[153770,7160](153770,290,0)我(154060,230,0)们(154290,270,0)学(154560,310,0)会(154870,370,0)许(155240,240,0)多(155480,320,0)说(155800,330,0)法(156130,220,0)来(156350,320,0)掩(156670,370,0)饰(157040,260,0)不(157300,340,0)碰(157640,210,0)的(157850,650,0)伤(158500,1870,0)疤(160370,560,0) 
+[160930,3580](160930,260,0)因(161190,360,0)为(161550,220,0)我(161770,340,0)会(162110,350,0)想(162460,320,0)起(162780,1310,0)你(164090,420,0) 
+[164510,3640](164510,240,0)我(164750,410,0)害(165160,280,0)怕(165440,360,0)面(165800,230,0)对(166030,300,0)自(166330,1370,0)己(167700,450,0) 
+[168150,7170](168150,320,0)我(168470,300,0)的(168770,250,0)意(169020,1480,0)志(170500,360,0)总(170860,460,0)被(171320,80,0) (171400,360,0)寂(171760,530,0)寞(172290,280,0)吞(172570,2050,0)食(174620,700,0) 
+[175320,3580](175320,250,0)因(175570,410,0)为(175980,240,0)你(176220,340,0)总(176560,340,0)会(176900,230,0)提(177130,1360,0)醒(178490,410,0) 
+[178900,4160](178900,320,0)过(179220,340,0)去(179560,300,0)总(179860,450,0)不(180310,730,0)会(181040,530,0)过(181570,1180,0)去(182750,310,0) 
+[183060,6620](183060,300,0)有(183360,1470,0)种(184830,30,0) (184860,390,0)真(185250,590,0)爱(185840,270,0)不(186110,630,0)是(186740,280,0)我(187020,2620,0)的(189640,40,0) 
+[189680,3550](189680,370,0)假(190050,310,0)如(190360,270,0)我(190630,280,0)不(190910,470,0)曾(191380,190,0)爱(191570,1270,0)你(192840,390,0) 
+[193230,3510](193230,370,0)我(193600,270,0)不(193870,280,0)会(194150,360,0)失(194510,320,0)去(194830,290,0)自(195120,1310,0)己(196430,310,0) 
+[196740,7330](196740,390,0)想(197130,430,0)念(197560,210,0)的(197770,1100,0)刺(198870,380,0) (199250,370,0)钉(199620,510,0)住(200130,370,0)我(200500,380,0)的(200880,520,0)位(201400,2480,0)置(203880,190,0) 
+[204070,3670](204070,280,0)因(204350,430,0)为(204780,270,0)你(205050,320,0)总(205370,330,0)会(205700,210,0)提(205910,1320,0)醒(207230,510,0) 
+[207740,4150](207740,280,0)尽(208020,340,0)管(208360,230,0)我(208590,600,0)得(209190,560,0)到(209750,630,0)世(210380,1170,0)界(211550,340,0) 
+[211890,7100](211890,240,0)有(212130,1490,0)些(213620,430,0)幸(214050,600,0)福(214650,270,0)不(214920,610,0)是(215530,270,0)我(215800,3160,0)的(218960,30,0) 
+[218990,3190](218990,60,0)你(219050,300,0)还(219350,410,0)记(219760,210,0)得(219970,1140,0)吗(221110,1070,0) 
+[222180,3590](222180,600,0)记(222780,250,0)忆(223030,320,0)的(223350,280,0)炎(223630,1210,0)夏(224840,930,0) 
+[225770,2600](225770,250,0)我(226020,340,0)终(226360,270,0)于(226630,240,0)没(226870,370,0)选(227240,310,0)择(227550,270,0)的(227820,270,0)分(228090,280,0)岔
+[228370,19590](228370,330,0)最(228700,350,0)后(229050,270,0)又(229320,320,0)有(229640,620,0)谁(230260,920,0) (231180,540,0)到(231720,5590,0)达(237310,10650,0)
+5、"search": "https://music-dl.sayqz.com/api/?source=netease&type=search&keyword=周杰伦&limit=10&page=1"：
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "keyword": "周杰伦",
+    "limit": 10,
+    "page": 1,
+    "total": 10,
+    "results": [
+      {
+        "id": "5257138",
+        "name": "屋顶",
+        "artist": "周杰伦、温岚、吴宗宪",
+        "album": "男女情歌对唱冠军全记录",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=5257138&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=5257138&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=5257138&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "509781655",
+        "name": "想你就写信 (Live)",
+        "artist": "周杰伦、李硕、张鑫",
+        "album": "中国新歌声第二季 第13期",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=509781655&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=509781655&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=509781655&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "210049",
+        "name": "布拉格广场",
+        "artist": "蔡依林、周杰伦",
+        "album": "看我72变",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=210049&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=210049&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=210049&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "1888354230",
+        "name": "默 (Live)",
+        "artist": "李荣浩、周杰伦",
+        "album": "2021中国好声音 第1期",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=1888354230&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=1888354230&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=1888354230&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "490595315",
+        "name": "因为爱情 (Live)",
+        "artist": "周杰伦、那英",
+        "album": "中国新歌声第二季 第1期",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=490595315&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=490595315&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=490595315&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "255020",
+        "name": "刀马旦",
+        "artist": "李玟、周杰伦",
+        "album": "Promise",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=255020&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=255020&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=255020&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "1317494434",
+        "name": "屋顶 (Live)",
+        "artist": "周杰伦、宿涵、张神儿",
+        "album": "2018中国好声音 澳门演唱会",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=1317494434&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=1317494434&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=1317494434&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "210062",
+        "name": "骑士精神",
+        "artist": "蔡依林、周杰伦",
+        "album": "看我72变",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=210062&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=210062&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=210062&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "5234479",
+        "name": "布拉格广场",
+        "artist": "蔡依林、周杰伦",
+        "album": "跨世纪金曲精选",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=5234479&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=5234479&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=5234479&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "490602328",
+        "name": "沧海一声笑 (Live)",
+        "artist": "那英、周杰伦、刘欢、陈奕迅",
+        "album": "中国新歌声第二季 第1期",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=490602328&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=490602328&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=490602328&type=lrc",
+        "platform": "netease"
+      }
+    ]
+  },
+  "timestamp": "2025-11-20T10:17:55.429+08:00"
+}
+6、"aggregateSearch": "https://music-dl.sayqz.com/api/?type=aggregateSearch&keyword=周杰伦&limit=5&page=1"：
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "keyword": "周杰伦",
+    "limit": 5,
+    "page": 1,
+    "platforms": [
+      "kuwo",
+      "netease",
+      "qq"
+    ],
+    "platformStats": {
+      "kuwo": {
+        "success": true,
+        "count": 5,
+        "duration": 205,
+        "error": null
+      },
+      "netease": {
+        "success": true,
+        "count": 5,
+        "duration": 137,
+        "error": null
+      },
+      "qq": {
+        "success": true,
+        "count": 5,
+        "duration": 211,
+        "error": null
+      }
+    },
+    "total": 15,
+    "results": [
+      {
+        "id": "228908",
+        "name": "晴天",
+        "artist": "周杰伦",
+        "album": "叶惠美",
+        "url": "https://music-dl.sayqz.com/api/?source=kuwo&id=228908&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=kuwo&id=228908&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=kuwo&id=228908&type=lrc",
+        "platform": "kuwo"
+      },
+      {
+        "id": "5257138",
+        "name": "屋顶",
+        "artist": "周杰伦、温岚、吴宗宪",
+        "album": "男女情歌对唱冠军全记录",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=5257138&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=5257138&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=5257138&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "0039MnYb0qxYhV",
+        "name": "晴天",
+        "artist": "周杰伦",
+        "album": "叶惠美",
+        "url": "https://music-dl.sayqz.com/api/?source=qq&id=0039MnYb0qxYhV&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=qq&id=0039MnYb0qxYhV&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=qq&id=0039MnYb0qxYhV&type=lrc",
+        "platform": "qq"
+      },
+      {
+        "id": "440615",
+        "name": "花海",
+        "artist": "周杰伦",
+        "album": "魔杰座",
+        "url": "https://music-dl.sayqz.com/api/?source=kuwo&id=440615&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=kuwo&id=440615&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=kuwo&id=440615&type=lrc",
+        "platform": "kuwo"
+      },
+      {
+        "id": "509781655",
+        "name": "想你就写信 (Live)",
+        "artist": "周杰伦、李硕、张鑫",
+        "album": "中国新歌声第二季 第13期",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=509781655&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=509781655&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=509781655&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "001Bbywq2gicae",
+        "name": "搁浅",
+        "artist": "周杰伦",
+        "album": "七里香",
+        "url": "https://music-dl.sayqz.com/api/?source=qq&id=001Bbywq2gicae&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=qq&id=001Bbywq2gicae&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=qq&id=001Bbywq2gicae&type=lrc",
+        "platform": "qq"
+      },
+      {
+        "id": "118987",
+        "name": "枫",
+        "artist": "周杰伦",
+        "album": "十一月的萧邦",
+        "url": "https://music-dl.sayqz.com/api/?source=kuwo&id=118987&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=kuwo&id=118987&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=kuwo&id=118987&type=lrc",
+        "platform": "kuwo"
+      },
+      {
+        "id": "210049",
+        "name": "布拉格广场",
+        "artist": "蔡依林、周杰伦",
+        "album": "看我72变",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=210049&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=210049&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=210049&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "002tNzue0g8xQA",
+        "name": "爱你没差",
+        "artist": "周杰伦",
+        "album": "十二新作",
+        "url": "https://music-dl.sayqz.com/api/?source=qq&id=002tNzue0g8xQA&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=qq&id=002tNzue0g8xQA&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=qq&id=002tNzue0g8xQA&type=lrc",
+        "platform": "qq"
+      },
+      {
+        "id": "94237",
+        "name": "七里香",
+        "artist": "周杰伦",
+        "album": "七里香",
+        "url": "https://music-dl.sayqz.com/api/?source=kuwo&id=94237&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=kuwo&id=94237&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=kuwo&id=94237&type=lrc",
+        "platform": "kuwo"
+      },
+      {
+        "id": "1888354230",
+        "name": "默 (Live)",
+        "artist": "李荣浩、周杰伦",
+        "album": "2021中国好声音 第1期",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=1888354230&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=1888354230&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=1888354230&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "002qU5aY3Qu24y",
+        "name": "青花瓷",
+        "artist": "周杰伦",
+        "album": "我很忙",
+        "url": "https://music-dl.sayqz.com/api/?source=qq&id=002qU5aY3Qu24y&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=qq&id=002qU5aY3Qu24y&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=qq&id=002qU5aY3Qu24y&type=lrc",
+        "platform": "qq"
+      },
+      {
+        "id": "324244",
+        "name": "青花瓷",
+        "artist": "周杰伦",
+        "album": "我很忙",
+        "url": "https://music-dl.sayqz.com/api/?source=kuwo&id=324244&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=kuwo&id=324244&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=kuwo&id=324244&type=lrc",
+        "platform": "kuwo"
+      },
+      {
+        "id": "490595315",
+        "name": "因为爱情 (Live)",
+        "artist": "周杰伦、那���",
+        "album": "中国新歌声第二季 第1期",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=490595315&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=490595315&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=490595315&type=lrc",
+        "platform": "netease"
+      },
+      {
+        "id": "003KtYhg4frNXC",
+        "name": "枫",
+        "artist": "周杰伦",
+        "album": "十一月的萧邦",
+        "url": "https://music-dl.sayqz.com/api/?source=qq&id=003KtYhg4frNXC&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=qq&id=003KtYhg4frNXC&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=qq&id=003KtYhg4frNXC&type=lrc",
+        "platform": "qq"
+      }
+    ]
+  },
+  "timestamp": "2025-11-20T10:18:24.297+08:00"
+}
+7、"playlist": "https://music-dl.sayqz.com/api/?source=netease&id=2037067301&type=playlist"：
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "list": [
+      {
+        "id": "1876909269",
+        "name": "Angel Baby",
+        "artist": "Troye Sivan",
+        "album": "Angel Baby",
+        "info": "https://music-dl.sayqz.com/api/?source=netease&id=1876909269&type=info",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=1876909269&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=1876909269&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=1876909269&type=lrc",
+        "types": [
+          "flac",
+          "320k",
+          "128k"
+        ]
+      },
+      {
+        "id": "1436753138",
+        "name": "Take Yourself Home",
+        "artist": "Troye Sivan",
+        "album": "In A Dream",
+        "info": "https://music-dl.sayqz.com/api/?source=netease&id=1436753138&type=info",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=1436753138&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=1436753138&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=1436753138&type=lrc",
+        "types": [
+          "flac",
+          "320k",
+          "128k"
+        ]
+      },
+      {
+        "id": "1402415971",
+        "name": "Love Me Wrong",
+        "artist": "Allie X、Troye Sivan",
+        "album": "Love Me Wrong",
+        "info": "https://music-dl.sayqz.com/api/?source=netease&id=1402415971&type=info",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=1402415971&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=1402415971&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=1402415971&type=lrc",
+        "types": [
+          "flac",
+          "320k",
+          "128k"
+        ]
+      },
+      {
+        "id": "1389394945",
+        "name": "2099",
+        "artist": "Charli xcx、Troye Sivan",
+        "album": "2099",
+        "info": "https://music-dl.sayqz.com/api/?source=netease&id=1389394945&type=info",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=1389394945&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=1389394945&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=1389394945&type=lrc",
+        "types": [
+          "flac",
+          "320k",
+          "128k"
+        ]
+      },
+      {
+        "id": "1413988070",
+        "name": "Yummy",
+        "artist": "Justin Bieber",
+        "album": "Changes",
+        "info": "https://music-dl.sayqz.com/api/?source=netease&id=1413988070&type=info",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=1413988070&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=1413988070&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=1413988070&type=lrc",
+        "types": [
+          "flac",
+          "320k",
+          "128k"
+        ]
+      }
+    ],
+    "total": 5,
+    "source": "netease",
+    "info": {
+      "name": "戳爷/美渣/断眉/萌德/灰森/比伯/六公主",
+      "pic": "https://p1.music.126.net/HTiXYFaa_L6k_-c7T0ZJWw==/109951164425574633.jpg",
+      "desc": "男朋友合集",
+      "author": "SumN23",
+      "playCount": 25878382
+    }
+  },
+  "timestamp": "2025-11-20T10:18:55.765+08:00"
+}
+8、"toplists": "https://music-dl.sayqz.com/api/?source=netease&type=toplists"：
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "list": [
+      {
+        "id": "19723756",
+        "name": "飙升榜",
+        "pic": "https://p2.music.126.net/rIi7Qzy2i2Y_1QD7cd0MYA==/109951170048506929.jpg",
+        "updateFrequency": "刚刚更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=19723756&type=toplist"
+      },
+      {
+        "id": "3779629",
+        "name": "新歌榜",
+        "pic": "https://p2.music.126.net/5guhqPBTcIrrhLBotgaT6w==/109951170048511751.jpg",
+        "updateFrequency": "刚刚更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=3779629&type=toplist"
+      },
+      {
+        "id": "2884035",
+        "name": "原创榜",
+        "pic": "https://p2.music.126.net/BaP9nrocNTL3gGThysv4eQ==/109951170091896587.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=2884035&type=toplist"
+      },
+      {
+        "id": "3778678",
+        "name": "热歌榜",
+        "pic": "https://p2.music.126.net/0SUEG8yDACfx0Bw2MYFv4Q==/109951170048519512.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=3778678&type=toplist"
+      },
+      {
+        "id": "991319590",
+        "name": "网易云中文说唱榜",
+        "pic": "https://p2.music.126.net/GgHbgDfGXHpE2YTchU7IvA==/109951171510498108.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=991319590&type=toplist"
+      },
+      {
+        "id": "71384707",
+        "name": "网易云古典榜",
+        "pic": "https://p2.music.126.net/urByD_AmfBDBrs7fA9-O8A==/109951167976973225.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=71384707&type=toplist"
+      },
+      {
+        "id": "1978921795",
+        "name": "网易云电音榜",
+        "pic": "https://p2.music.126.net/hXGObvXfsGtFjFvRhOYAkA==/109951170091888741.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=1978921795&type=toplist"
+      },
+      {
+        "id": "14028249541",
+        "name": "网易云全球说唱榜",
+        "pic": "https://p2.music.126.net/0hhFjP6WyIjHYDXKW5E7BA==/109951171535150782.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=14028249541&type=toplist"
+      },
+      {
+        "id": "13372522766",
+        "name": "潮流风向榜",
+        "pic": "https://p2.music.126.net/dIKA5e7jCncz2Br1Toxgaw==/109951170621574552.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=13372522766&type=toplist"
+      },
+      {
+        "id": "12911403728",
+        "name": "音乐合伙人推荐榜",
+        "pic": "https://p2.music.126.net/s6ITpmGjKbyDpi7DPkqd2w==/109951170187827373.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=12911403728&type=toplist"
+      },
+      {
+        "id": "12911589513",
+        "name": "音乐合伙人热歌榜",
+        "pic": "https://p2.music.126.net/RgYxQmB-ZUjkMRo2N1jWnQ==/109951170187823494.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=12911589513&type=toplist"
+      },
+      {
+        "id": "12911619970",
+        "name": "音乐合伙人留名榜",
+        "pic": "https://p2.music.126.net/aJJzGIxhkVaD7dX0XBNUnw==/109951170187831145.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=12911619970&type=toplist"
+      },
+      {
+        "id": "12911379734",
+        "name": "音乐合伙人高分新歌榜",
+        "pic": "https://p2.music.126.net/bfk15bvanhdPFU7yjPFgWA==/109951170187832038.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=12911379734&type=toplist"
+      },
+      {
+        "id": "12768855486",
+        "name": "音乐合伙人高分榜",
+        "pic": "https://p2.music.126.net/fPP5T0Z8Ac15qNvRTcHa6g==/109951170074028970.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=12768855486&type=toplist"
+      },
+      {
+        "id": "5453912201",
+        "name": "黑胶VIP爱听榜",
+        "pic": "https://p2.music.126.net/qo6-o9n5AhMjNyejev38-A==/109951169743111905.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=5453912201&type=toplist"
+      },
+      {
+        "id": "71385702",
+        "name": "网易云ACG榜",
+        "pic": "https://p2.music.126.net/na1kEeCS1iZEkzOrs9r_9g==/109951167976973667.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=71385702&type=toplist"
+      },
+      {
+        "id": "745956260",
+        "name": "网易云韩语榜",
+        "pic": "https://p2.music.126.net/5oN9YaFznwNGXkmi8i2Ytw==/109951167430864741.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=745956260&type=toplist"
+      },
+      {
+        "id": "180106",
+        "name": "UK排行榜周榜",
+        "pic": "https://p2.music.126.net/fhAqiflLy3eU-ldmBQByrg==/109951165613082765.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=180106&type=toplist"
+      },
+      {
+        "id": "60198",
+        "name": "美国Billboard榜",
+        "pic": "https://p2.music.126.net/rwRsVIJHQ68gglhA6TNEYA==/109951165611413732.jpg",
+        "updateFrequency": "每周三更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=60198&type=toplist"
+      },
+      {
+        "id": "3812895",
+        "name": "Beatport全球电子舞曲榜",
+        "pic": "https://p2.music.126.net/oT-RHuPBJiD7WMoU7WG5Rw==/109951166093489621.jpg",
+        "updateFrequency": "每周三更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=3812895&type=toplist"
+      },
+      {
+        "id": "21845217",
+        "name": "KTV唛榜",
+        "pic": "https://p2.music.126.net/5wDP78s43ydVTKt62C8OjQ==/109951165613100063.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=21845217&type=toplist"
+      },
+      {
+        "id": "60131",
+        "name": "日本Oricon榜",
+        "pic": "https://p2.music.126.net/aXUPgImt8hhf4cMUZEjP4g==/109951165611417794.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=60131&type=toplist"
+      },
+      {
+        "id": "2809513713",
+        "name": "网易云欧美热歌榜",
+        "pic": "https://p2.music.126.net/70_EO_Dc7NT_hhfvsapzcQ==/109951167430862162.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=2809513713&type=toplist"
+      },
+      {
+        "id": "2809577409",
+        "name": "网易云欧美新歌榜",
+        "pic": "https://p2.music.126.net/0lPWpI9Ejn1OiW2LSbg-qw==/109951167430863224.jpg",
+        "updateFrequency": "更新21首",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=2809577409&type=toplist"
+      },
+      {
+        "id": "27135204",
+        "name": "法国 NRJ Vos Hits 周榜",
+        "pic": "https://p2.music.126.net/-fyzrPWd06FfWl_0JDAxMQ==/109951165613108584.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=27135204&type=toplist"
+      },
+      {
+        "id": "3001835560",
+        "name": "网易云ACG动画榜",
+        "pic": "https://p2.music.126.net/SkGlKQ6acixthb77VlD9eQ==/109951164432300406.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=3001835560&type=toplist"
+      },
+      {
+        "id": "3001795926",
+        "name": "网易云ACG游戏榜",
+        "pic": "https://p2.music.126.net/hivOOHMwEmnn9s_6rgZwEQ==/109951164432303700.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=3001795926&type=toplist"
+      },
+      {
+        "id": "3001890046",
+        "name": "网易云ACG VOCALOID榜",
+        "pic": "https://p2.music.126.net/Ag7RyRCYiINcd9EtRXf6xA==/109951164432303690.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=3001890046&type=toplist"
+      },
+      {
+        "id": "5059644681",
+        "name": "网易云日语榜",
+        "pic": "https://p2.music.126.net/YFBFNI2F-4BveUpv6FKFuw==/109951167430864069.jpg",
+        "updateFrequency": "每周二更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=5059644681&type=toplist"
+      },
+      {
+        "id": "5059633707",
+        "name": "网易云摇滚榜",
+        "pic": "https://p2.music.126.net/LjkX2hktgFD1NXc3W6w0sA==/109951170048522513.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=5059633707&type=toplist"
+      },
+      {
+        "id": "5059642708",
+        "name": "网易云国风榜",
+        "pic": "https://p2.music.126.net/kTJC5OBhg8I477X_ZmXyDQ==/109951168539740982.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=5059642708&type=toplist"
+      },
+      {
+        "id": "5338990334",
+        "name": "潜力爆款榜",
+        "pic": "https://p2.music.126.net/Mi4QPklg1mtbWAfq74tEqQ==/109951165498334721.jpg",
+        "updateFrequency": "每周二更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=5338990334&type=toplist"
+      },
+      {
+        "id": "5059661515",
+        "name": "网易云民谣榜",
+        "pic": "https://p2.music.126.net/Xe9qLTAqtBAWX_hPgFHMyw==/109951170048510929.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=5059661515&type=toplist"
+      },
+      {
+        "id": "6688069460",
+        "name": "听歌识曲榜",
+        "pic": "https://p2.music.126.net/wJVUAiUuykKk7yGbQxDBug==/109951167430857712.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=6688069460&type=toplist"
+      },
+      {
+        "id": "6723173524",
+        "name": "网络热歌榜",
+        "pic": "https://p2.music.126.net/_kSxOPqQ5J5etC5DKTFwNA==/109951170048519530.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=6723173524&type=toplist"
+      },
+      {
+        "id": "6732051320",
+        "name": "俄语榜",
+        "pic": "https://p2.music.126.net/HbJ0BK5doY4I4pEMY6-FQw==/109951167430852698.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=6732051320&type=toplist"
+      },
+      {
+        "id": "6732014811",
+        "name": "越南语榜",
+        "pic": "https://p2.music.126.net/N-Y5maLGWgrowt3TE6RtSg==/109951167430857045.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=6732014811&type=toplist"
+      },
+      {
+        "id": "6886768100",
+        "name": "中文慢摇DJ榜",
+        "pic": "https://p1.music.126.net/w_01BfDU012ojxnzLO6tYw==/109951167977358686.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=6886768100&type=toplist"
+      },
+      {
+        "id": "6939992364",
+        "name": "俄罗斯top hit流行音乐榜",
+        "pic": "https://p1.music.126.net/KLVO8PxVZzOoLdWQQNyprA==/109951166327316568.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=6939992364&type=toplist"
+      },
+      {
+        "id": "7095271308",
+        "name": "泰语榜",
+        "pic": "https://p1.music.126.net/4W0WBHBgwYlYfRniuyL47A==/109951167430843284.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=7095271308&type=toplist"
+      },
+      {
+        "id": "7356827205",
+        "name": "BEAT排行榜",
+        "pic": "https://p1.music.126.net/yhzlQJCJ9NcT4MvJBG_HgQ==/109951167977014958.jpg",
+        "updateFrequency": "每周四更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=7356827205&type=toplist"
+      },
+      {
+        "id": "7325478166",
+        "name": "星云榜VOL.30 Wolf Alice新专来袭，人生应该拥有不一样的颜色",
+        "pic": "https://p1.music.126.net/8GBpHVmycVwe2Xsv3dqx1w==/109951172069064297.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=7325478166&type=toplist"
+      },
+      {
+        "id": "7603212484",
+        "name": "LOOK直播歌曲榜",
+        "pic": "https://p1.music.126.net/u-RQC-LyY0aoeseRumJ14A==/109951167977730469.jpg",
+        "updateFrequency": "每周二更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=7603212484&type=toplist"
+      },
+      {
+        "id": "7775163417",
+        "name": "赏音榜",
+        "pic": "https://p1.music.126.net/m9hQzC-d5wefBipedNPaHg==/109951168178601971.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=7775163417&type=toplist"
+      },
+      {
+        "id": "7785123708",
+        "name": "黑胶VIP新歌榜",
+        "pic": "https://p1.music.126.net/vjitpkT9nXBCth6tvdDMWg==/109951169743115266.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=7785123708&type=toplist"
+      },
+      {
+        "id": "7785066739",
+        "name": "黑胶VIP热歌榜",
+        "pic": "https://p1.music.126.net/Ay3mLgQ9weG_c8JjYrD-Bw==/109951169743106495.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=7785066739&type=toplist"
+      },
+      {
+        "id": "7785091694",
+        "name": "黑胶VIP爱搜榜",
+        "pic": "https://p1.music.126.net/R7DtZqNraesnsiaIKvzTHA==/109951169743112799.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=7785091694&type=toplist"
+      },
+      {
+        "id": "8246775932",
+        "name": "实时热度榜",
+        "pic": "https://p1.music.126.net/U7ZbdpWzRdmZVr6Khn_4ag==/109951168673982478.jpg",
+        "updateFrequency": "刚刚更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=8246775932&type=toplist"
+      },
+      {
+        "id": "8537588450",
+        "name": "喜力®星电音派对潮音榜",
+        "pic": "https://p1.music.126.net/HVu2hGYvzN5XBuvFc_4Bgg==/109951168730309120.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=8537588450&type=toplist"
+      },
+      {
+        "id": "8661209031",
+        "name": "乐夏榜",
+        "pic": "https://p1.music.126.net/RlStCmE97y0xYFk7rS3Zww==/109951168864907822.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=8661209031&type=toplist"
+      },
+      {
+        "id": "8703179781",
+        "name": "特斯拉车友爱听榜",
+        "pic": "https://p1.music.126.net/UL8dhobSa3TR6Wd1JmWe_g==/109951168924385363.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=8703179781&type=toplist"
+      },
+      {
+        "id": "8703052295",
+        "name": "理想车友爱听榜",
+        "pic": "https://p1.music.126.net/U--PWdWupY1ER5cVSjr1jQ==/109951168928365496.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=8703052295&type=toplist"
+      },
+      {
+        "id": "8702582160",
+        "name": "比亚迪车友爱听榜",
+        "pic": "https://p1.music.126.net/S1OG-OLTaofa3HfrHW48kA==/109951168924393585.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=8702582160&type=toplist"
+      },
+      {
+        "id": "8703220480",
+        "name": "蔚来车友爱听榜",
+        "pic": "https://p1.music.126.net/r9kBQNsOro1EAB82Ol51WQ==/109951168924380971.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=8703220480&type=toplist"
+      },
+      {
+        "id": "8702982391",
+        "name": "极氪车友爱听榜",
+        "pic": "https://p1.music.126.net/Cu0RXoKewSPM9Gyc7Cp8jw==/109951168924391596.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=8702982391&type=toplist"
+      },
+      {
+        "id": "8532443277",
+        "name": "蛋仔派对听歌榜",
+        "pic": "https://p1.music.126.net/TMb0be5QLMZKOFeuOKT4tg==/109951168717283910.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=8532443277&type=toplist"
+      },
+      {
+        "id": "9651277674",
+        "name": "AI歌曲榜",
+        "pic": "https://p1.music.126.net/M0m6GeZ1Y8Osz9jqxaW8Wg==/109951169462048035.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=9651277674&type=toplist"
+      },
+      {
+        "id": "10131772880",
+        "name": "昊铂车友爱听榜",
+        "pic": "https://p1.music.126.net/EL7H4rkKejZY7Uv54EFNXg==/109951169655010112.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=10131772880&type=toplist"
+      },
+      {
+        "id": "10162841534",
+        "name": "埃安车友爱听榜",
+        "pic": "https://p1.music.126.net/FcP1U6Bck0wPKqd0XgBwSQ==/109951169679731241.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=10162841534&type=toplist"
+      },
+      {
+        "id": "12225155968",
+        "name": "欧美R&B榜",
+        "pic": "https://p1.music.126.net/0E6MzYzyA5uvQ4CSoIG2mw==/109951169739660034.jpg",
+        "updateFrequency": "每周五更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=12225155968&type=toplist"
+      },
+      {
+        "id": "12344472377",
+        "name": "黑胶VIP限免榜",
+        "pic": "https://p1.music.126.net/WXCSf4ZNcDCdOTY5ixm3Bg==/109951169809318325.jpg",
+        "updateFrequency": "每天更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=12344472377&type=toplist"
+      },
+      {
+        "id": "12717025277",
+        "name": "吉利车友爱听榜",
+        "pic": "https://p1.music.126.net/XVmZb3JSyrwMgqu9WVz61A==/109951170037568570.jpg",
+        "updateFrequency": "每周一更新",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=12717025277&type=toplist"
+      }
+    ],
+    "total": 62,
+    "source": "netease"
+  },
+  "timestamp": "2025-11-20T10:21:03.512+08:00"
+}
+9、"toplist": "https://music-dl.sayqz.com/api/?source=netease&id=19723756&type=toplist"：
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "list": [
+      {
+        "id": "3318924230",
+        "name": "尘间雪",
+        "artist": "世界之外",
+        "album": "世界之外「顾时夜」2025年生日主题专辑",
+        "info": "https://music-dl.sayqz.com/api/?source=netease&id=3318924230&type=info",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=3318924230&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=3318924230&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=3318924230&type=lrc",
+        "types": [
+          "flac24bit",
+          "flac",
+          "320k",
+          "128k"
+        ]
+      },
+      {
+        "id": "3319035289",
+        "name": "无名指",
+        "artist": "尤长靖",
+        "album": "无名指",
+        "info": "https://music-dl.sayqz.com/api/?source=netease&id=3319035289&type=info",
+        "url": "https://music-dl.sayqz.com/api/?source=netease&id=3319035289&type=url",
+        "pic": "https://music-dl.sayqz.com/api/?source=netease&id=3319035289&type=pic",
+        "lrc": "https://music-dl.sayqz.com/api/?source=netease&id=3319035289&type=lrc",
+        "types": [
+          "flac24bit",
+          "flac",
+          "320k",
+          "128k"
+        ]
+      }
+          ],
+    "total": 2,
+    "source": "netease"
+  },
+  "timestamp": "2025-11-20T10:21:39.437+08:00"
+}
