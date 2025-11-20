@@ -643,7 +643,7 @@ function buildAudioProxyUrl(url) {
 const SOURCE_OPTIONS = [
     { value: "netease", label: "网易云音乐" },
     { value: "kuwo", label: "酷我音乐" },
-    { value: "joox", label: "JOOX音乐" }
+    { value: "qq", label: "QQ音乐" }
 ];
 
 function normalizeSource(value) {
@@ -653,9 +653,9 @@ function normalizeSource(value) {
 
 const QUALITY_OPTIONS = [
     { value: "128", label: "标准音质", description: "128 kbps" },
-    { value: "192", label: "高品音质", description: "192 kbps" },
-    { value: "320", label: "极高音质", description: "320 kbps" },
-    { value: "999", label: "无损音质", description: "FLAC" }
+    { value: "192", label: "高品音质", description: "320 kbps" },
+    { value: "320", label: "极高音质", description: "FLAC" },
+    { value: "999", label: "无损音质", description: "FLAC 24bit" }
 ];
 
 function normalizeQuality(value) {
@@ -795,24 +795,26 @@ const API = {
 
     search: async (keyword, source = "netease", count = 20, page = 1) => {
         const signature = API.generateSignature();
-        const url = `${API.baseUrl}?types=search&source=${source}&name=${encodeURIComponent(keyword)}&count=${count}&pages=${page}&s=${signature}`;
+        const url = `${API.baseUrl}?type=search&source=${source}&keyword=${encodeURIComponent(keyword)}&limit=${count}&page=${page}&s=${signature}`;
 
         try {
             debugLog(`API请求: ${url}`);
             const data = await API.fetchJson(url);
             debugLog(`API响应: ${JSON.stringify(data).substring(0, 200)}...`);
 
-            if (!Array.isArray(data)) throw new Error("搜索结果格式错误");
+            if (!data || !data.data || !Array.isArray(data.data.results)) {
+                throw new Error("搜索结果格式错误");
+            }
 
-            return data.map(song => ({
+            return data.data.results.map(song => ({
                 id: song.id,
                 name: song.name,
                 artist: song.artist,
                 album: song.album,
-                pic_id: song.pic_id,
-                url_id: song.url_id,
-                lyric_id: song.lyric_id,
-                source: song.source,
+                pic_id: song.id,
+                url_id: song.id,
+                lyric_id: song.id,
+                source: song.platform || source,
             }));
         } catch (error) {
             debugLog(`API错误: ${error.message}`);
@@ -843,18 +845,17 @@ const API = {
         offset = Math.max(0, Math.trunc(offset) || 0);
 
         const params = new URLSearchParams({
-            types: "playlist",
+            type: "toplist",
+            source: "netease",
             id: playlistId,
-            limit: String(limit),
-            offset: String(offset),
             s: signature,
         });
         const url = `${API.baseUrl}?${params.toString()}`;
 
         try {
             const data = await API.fetchJson(url);
-            const tracks = data && data.playlist && Array.isArray(data.playlist.tracks)
-                ? data.playlist.tracks.slice(0, limit)
+            const tracks = data && data.data && Array.isArray(data.data.list)
+                ? data.data.list.slice(0, limit)
                 : [];
 
             if (tracks.length === 0) throw new Error("No tracks found");
@@ -862,10 +863,10 @@ const API = {
             return tracks.map(track => ({
                 id: track.id,
                 name: track.name,
-                artist: Array.isArray(track.ar) ? track.ar.map(artist => artist.name).join(" / ") : "",
+                artist: track.artist || "",
                 source: "netease",
                 lyric_id: track.id,
-                pic_id: track.al?.pic_str || track.al?.pic || track.al?.picUrl || "",
+                pic_id: track.id,
             }));
         } catch (error) {
             console.error("API request failed:", error);
@@ -875,17 +876,20 @@ const API = {
 
     getSongUrl: (song, quality = "320") => {
         const signature = API.generateSignature();
-        return `${API.baseUrl}?types=url&id=${song.id}&source=${song.source || "netease"}&br=${quality}&s=${signature}`;
+        // Map quality values: 128→128k, 192→320k, 320→flac, 999→flac24bit
+        const qualityMap = { "128": "128k", "192": "320k", "320": "flac", "999": "flac24bit" };
+        const br = qualityMap[quality] || "320k";
+        return `${API.baseUrl}?type=url&id=${song.id}&source=${song.source || "netease"}&br=${br}&s=${signature}`;
     },
 
     getLyric: (song) => {
         const signature = API.generateSignature();
-        return `${API.baseUrl}?types=lyric&id=${song.lyric_id || song.id}&source=${song.source || "netease"}&s=${signature}`;
+        return `${API.baseUrl}?type=lrc&id=${song.lyric_id || song.id}&source=${song.source || "netease"}&s=${signature}`;
     },
 
     getPicUrl: (song) => {
         const signature = API.generateSignature();
-        return `${API.baseUrl}?types=pic&id=${song.pic_id}&source=${song.source || "netease"}&size=300&s=${signature}`;
+        return `${API.baseUrl}?type=pic&id=${song.pic_id || song.id}&source=${song.source || "netease"}&s=${signature}`;
     }
 };
 
@@ -1220,7 +1224,7 @@ bootstrapPersistentStorage();
             { src: base, sizes: '256x256', type },
             { src: base, sizes: '192x192', type },
             { src: base, sizes: '128x128', type },
-            { src: base, sizes: '96x96',  type }
+            { src: base, sizes: '96x96', type }
         ];
     }
 
@@ -1242,7 +1246,7 @@ bootstrapPersistentStorage();
             // 某些旧 iOS 可能对 artwork 尺寸挑剔，失败时用最小配置重试
             try {
                 navigator.mediaSession.metadata = new MediaMetadata({ title, artist });
-            } catch (_) {}
+            } catch (_) { }
         }
     }
 
@@ -1317,12 +1321,12 @@ bootstrapPersistentStorage();
             } else {
                 try {
                     navigator.mediaSession.setActionHandler('seekto', null);
-                } catch (_) {}
+                } catch (_) { }
             }
 
             // 可选：切换播放状态（大部分系统自己会处理）
             navigator.mediaSession.setActionHandler('play', async () => {
-                try { await audio.play(); } catch(_) {}
+                try { await audio.play(); } catch (_) { }
             });
             navigator.mediaSession.setActionHandler('pause', () => audio.pause());
         } catch (_) {
@@ -3376,10 +3380,10 @@ function setupInteractions() {
         debugLog(`点击事件触发: ${e.target.tagName} ${e.target.className} ${e.target.id}`);
 
         // 检查多种可能的目标元素
-        const loadMoreBtn = e.target.closest(".load-more-btn") || 
-                           e.target.closest("#loadMoreBtn") ||
-                           (e.target.id === "loadMoreBtn" ? e.target : null) ||
-                           (e.target.classList.contains("load-more-btn") ? e.target : null);
+        const loadMoreBtn = e.target.closest(".load-more-btn") ||
+            e.target.closest("#loadMoreBtn") ||
+            (e.target.id === "loadMoreBtn" ? e.target : null) ||
+            (e.target.classList.contains("load-more-btn") ? e.target : null);
 
         if (loadMoreBtn) {
             debugLog("检测到加载更多按钮点击");
@@ -3489,47 +3493,39 @@ function updateCurrentSongInfo(song, options = {}) {
         dom.albumCover.classList.add("loading");
         const picUrl = API.getPicUrl(song);
 
-        API.fetchJson(picUrl)
-            .then(data => {
-                if (!data || !data.url) {
-                    throw new Error("封面地址缺失");
-                }
+        // TuneHub API returns image data directly, use picUrl as image source
+        const img = new Image();
+        const imageUrl = picUrl;
+        const absoluteImageUrl = toAbsoluteUrl(imageUrl);
 
-                const img = new Image();
-                const imageUrl = preferHttpsUrl(data.url);
-                const absoluteImageUrl = toAbsoluteUrl(imageUrl);
-                if (state.currentSong === song) {
-                    state.currentArtworkUrl = absoluteImageUrl;
-                    if (typeof window.__SOLARA_UPDATE_MEDIA_METADATA === 'function') {
-                        window.__SOLARA_UPDATE_MEDIA_METADATA();
-                    }
-                }
-                img.crossOrigin = "anonymous";
-                img.onload = () => {
-                    if (state.currentSong !== song) {
-                        return;
-                    }
-                    setAlbumCoverImage(imageUrl);
-                    const shouldApplyImmediately = paletteCache.has(imageUrl) ||
-                        (state.currentPaletteImage === imageUrl && state.dynamicPalette);
-                    scheduleDeferredPaletteUpdate(imageUrl, { immediate: shouldApplyImmediately });
-                };
-                img.onerror = () => {
-                    if (state.currentSong !== song) {
-                        return;
-                    }
-                    cancelDeferredPaletteUpdate();
-                    showAlbumCoverPlaceholder();
-                };
-                img.src = imageUrl;
-            })
-            .catch(error => {
-                console.error("加载封面失败:", error);
-                if (state.currentSong === song) {
-                    cancelDeferredPaletteUpdate();
-                    showAlbumCoverPlaceholder();
-                }
-            });
+        // Set current artwork URL immediately
+        if (state.currentSong === song) {
+            state.currentArtworkUrl = absoluteImageUrl;
+            if (typeof window.__SOLARA_UPDATE_MEDIA_METADATA === 'function') {
+                window.__SOLARA_UPDATE_MEDIA_METADATA();
+            }
+        }
+
+        // Load the image
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            if (state.currentSong !== song) {
+                return;
+            }
+            setAlbumCoverImage(absoluteImageUrl);
+            const shouldApplyImmediately = paletteCache.has(absoluteImageUrl) ||
+                (state.currentPaletteImage === absoluteImageUrl && state.dynamicPalette);
+            scheduleDeferredPaletteUpdate(absoluteImageUrl, { immediate: shouldApplyImmediately });
+        };
+        img.onerror = () => {
+            if (state.currentSong !== song) {
+                return;
+            }
+            console.error("加载封面失败");
+            cancelDeferredPaletteUpdate();
+            showAlbumCoverPlaceholder();
+        };
+        img.src = absoluteImageUrl;
     } else {
         cancelDeferredPaletteUpdate();
         showAlbumCoverPlaceholder();
@@ -5208,33 +5204,6 @@ async function playSong(song, options = {}) {
 
     try {
         updateCurrentSongInfo(song, { loadArtwork: false });
-
-        const quality = state.playbackQuality || '320';
-        const audioUrl = API.getSongUrl(song, quality);
-        debugLog(`获取音频URL: ${audioUrl}`);
-
-        const audioData = await API.fetchJson(audioUrl);
-
-        if (!audioData || !audioData.url) {
-            throw new Error('无法获取音频播放地址');
-        }
-
-        const originalAudioUrl = audioData.url;
-        const proxiedAudioUrl = buildAudioProxyUrl(originalAudioUrl);
-        const preferredAudioUrl = preferHttpsUrl(originalAudioUrl);
-        const candidateAudioUrls = Array.from(
-            new Set([proxiedAudioUrl, preferredAudioUrl, originalAudioUrl].filter(Boolean))
-        );
-
-        const primaryAudioUrl = candidateAudioUrls[0] || originalAudioUrl;
-
-        if (proxiedAudioUrl && proxiedAudioUrl !== originalAudioUrl) {
-            debugLog(`音频地址已通过代理转换为 HTTPS: ${proxiedAudioUrl}`);
-        } else if (preferredAudioUrl && preferredAudioUrl !== originalAudioUrl) {
-            debugLog(`音频地址由 HTTP 升级为 HTTPS: ${preferredAudioUrl}`);
-        }
-
-        state.currentSong = song;
         state.currentAudioUrl = null;
 
         dom.audioPlayer.pause();
@@ -5260,6 +5229,19 @@ async function playSong(song, options = {}) {
         }
 
         state.pendingSeekTime = startTime > 0 ? startTime : null;
+
+        // TuneHub API returns audio data directly, use the proxy URL as audio source  
+        const quality = state.playbackQuality || '320';
+        const audioUrl = API.getSongUrl(song, quality);
+        debugLog(`获取音频URL: ${audioUrl}`);
+
+        // Use the proxy URL directly as the audio source
+        const proxiedAudioUrl = audioUrl;
+        const candidateAudioUrls = [proxiedAudioUrl];
+        debugLog(`候选音频URL: ${candidateAudioUrls.join(', ')}`);
+
+        state.currentSong = song;
+        const primaryAudioUrl = candidateAudioUrls[0];
 
         let selectedAudioUrl = null;
         let lastAudioError = null;
@@ -5696,10 +5678,15 @@ async function loadLyrics(song) {
         const lyricUrl = API.getLyric(song);
         debugLog(`获取歌词URL: ${lyricUrl}`);
 
-        const lyricData = await API.fetchJson(lyricUrl);
+        // TuneHub API returns lyrics text directly, fetch as text not JSON
+        const response = await fetch(lyricUrl);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch lyrics: ${response.status}`);
+        }
+        const lyricText = await response.text();
 
-        if (lyricData && lyricData.lyric) {
-            parseLyrics(lyricData.lyric);
+        if (lyricText && lyricText.trim()) {
+            parseLyrics(lyricText);
             dom.lyrics.classList.remove("empty");
             dom.lyrics.dataset.placeholder = "default";
             debugLog(`歌词加载成功: ${state.lyricsData.length} 行`);
@@ -5728,17 +5715,33 @@ function parseLyrics(lyricText) {
     const lyrics = [];
 
     lines.forEach(line => {
-        const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
-        if (match) {
-            const minutes = parseInt(match[1]);
-            const seconds = parseInt(match[2]);
-            const milliseconds = parseInt(match[3].padEnd(3, '0'));
+        // Try to match standard LRC format: [mm:ss.xx]text
+        const standardMatch = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
+        if (standardMatch) {
+            const minutes = parseInt(standardMatch[1]);
+            const seconds = parseInt(standardMatch[2]);
+            const milliseconds = parseInt(standardMatch[3].padEnd(3, '0'));
             const time = minutes * 60 + seconds + milliseconds / 1000;
-            const text = match[4].trim();
+            const text = standardMatch[4].trim();
 
             if (text) {
                 lyrics.push({ time, text });
             }
+            return;
+        }
+
+        // Try to match TuneHub format: [milliseconds,duration]text or [milliseconds,duration](word_timings)text
+        const tuneHubMatch = line.match(/\[(\d+),\d+\](?:\([^)]+\))?(.*)/);
+        if (tuneHubMatch) {
+            const milliseconds = parseInt(tuneHubMatch[1]);
+            const time = milliseconds / 1000;
+            // Remove word-level timestamps like (22470,320,0) from the text
+            let text = tuneHubMatch[2].replace(/\(\d+,\d+,\d+\)/g, '').trim();
+
+            if (text) {
+                lyrics.push({ time, text });
+            }
+            return;
         }
     });
 
@@ -5886,48 +5889,24 @@ async function downloadSong(song, quality = "320") {
     try {
         showNotification("正在准备下载...");
 
+        // TuneHub API returns audio data directly, use the proxy URL as download link
         const audioUrl = API.getSongUrl(song, quality);
-        const audioData = await API.fetchJson(audioUrl);
+        const downloadUrl = toAbsoluteUrl(audioUrl);
 
-        if (audioData && audioData.url) {
-            const proxiedAudioUrl = buildAudioProxyUrl(audioData.url);
-            const preferredAudioUrl = preferHttpsUrl(audioData.url);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
 
-            if (proxiedAudioUrl !== audioData.url) {
-                debugLog(`下载链接已通过代理转换为 HTTPS: ${proxiedAudioUrl}`);
-            } else if (preferredAudioUrl !== audioData.url) {
-                debugLog(`下载链接由 HTTP 升级为 HTTPS: ${preferredAudioUrl}`);
-            }
+        // Determine file extension based on quality
+        const qualityMap = { "128": "mp3", "192": "mp3", "320": "flac", "999": "flac" };
+        const fileExtension = qualityMap[quality] || "mp3";
 
-            const downloadUrl = proxiedAudioUrl || preferredAudioUrl || audioData.url;
+        link.download = `${song.name} - ${Array.isArray(song.artist) ? song.artist.join(", ") : song.artist}.${fileExtension}`;
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
-            const link = document.createElement("a");
-            link.href = downloadUrl;
-            const preferredExtension =
-                quality === "999" ? "flac" : quality === "740" ? "ape" : "mp3";
-            const fileExtension = (() => {
-                try {
-                    const url = new URL(audioData.url);
-                    const pathname = url.pathname || "";
-                    const match = pathname.match(/\.([a-z0-9]+)$/i);
-                    if (match) {
-                        return match[1];
-                    }
-                } catch (error) {
-                    console.warn("无法从下载链接中解析扩展名:", error);
-                }
-                return preferredExtension;
-            })();
-            link.download = `${song.name} - ${Array.isArray(song.artist) ? song.artist.join(", ") : song.artist}.${fileExtension}`;
-            link.target = "_blank";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showNotification("下载已开始", "success");
-        } else {
-            throw new Error("无法获取下载地址");
-        }
+        showNotification("下载已开始", "success");
     } catch (error) {
         console.error("下载失败:", error);
         showNotification("下载失败，请稍后重试", "error");

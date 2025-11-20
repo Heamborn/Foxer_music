@@ -1,5 +1,5 @@
-const API_BASE_URL = "https://music-api.gdstudio.xyz/api.php";
-const KUWO_HOST_PATTERN = /(^|\.)kuwo\.cn$/i;
+const API_BASE_URL = "https://music-dl.sayqz.com/api/";
+const KUWO_HOST_PATTERN = /(^|\\.)kuwo\\.cn$/i;
 const SAFE_RESPONSE_HEADERS = ["content-type", "cache-control", "accept-ranges", "content-length", "content-range", "etag", "last-modified", "expires"];
 
 function createCorsHeaders(init?: Headers): Headers {
@@ -85,15 +85,27 @@ async function proxyKuwoAudio(targetUrl: string, request: Request): Promise<Resp
 
 async function proxyApiRequest(url: URL, request: Request): Promise<Response> {
   const apiUrl = new URL(API_BASE_URL);
+
+  // Map old parameter names to new API format
+  const paramMapping: Record<string, string> = {
+    "types": "type",
+    "name": "keyword",
+    "count": "limit",
+    "pages": "page"
+  };
+
   url.searchParams.forEach((value, key) => {
-    if (key === "target" || key === "callback") {
+    if (key === "target" || key === "callback" || key === "s") {
+      // Skip target, callback, and signature parameters
       return;
     }
-    apiUrl.searchParams.set(key, value);
+    // Use mapped parameter name if exists, otherwise use original
+    const mappedKey = paramMapping[key] || key;
+    apiUrl.searchParams.set(mappedKey, value);
   });
 
-  if (!apiUrl.searchParams.has("types")) {
-    return new Response("Missing types", { status: 400 });
+  if (!apiUrl.searchParams.has("type")) {
+    return new Response("Missing type parameter", { status: 400 });
   }
 
   const upstream = await fetch(apiUrl.toString(), {

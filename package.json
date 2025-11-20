@@ -1,0 +1,12 @@
+{
+  "name": "solara-music-player",
+  "version": "1.0.0",
+  "description": "Solara - Modern Music Player",
+  "scripts": {
+    "dev": "wrangler pages dev . --compatibility-date=2024-01-01",
+    "deploy": "wrangler pages deploy ."
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
