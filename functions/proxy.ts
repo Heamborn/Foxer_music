@@ -170,17 +170,13 @@ async function proxyApiRequest(url: URL, request: Request): Promise<Response> {
   const upstream = await fetch(apiUrl.toString(), {
     headers: {
       "User-Agent": request.headers.get("User-Agent") ?? "Mozilla/5.0",
-      "Accept": requestType === "pic" ? "image/*" : "application/json",
+      "Accept": "application/json",
     },
   });
 
   const headers = createCorsHeaders(upstream.headers);
-
-  // 对于pic和lrc类型,保留原始Content-Type以便palette等服务正确处理
-  if (requestType !== "pic" && requestType !== "lrc") {
-    if (!headers.has("Content-Type")) {
-      headers.set("Content-Type", "application/json; charset=utf-8");
-    }
+  if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json; charset=utf-8");
   }
 
   return new Response(upstream.body, {

@@ -1959,14 +1959,12 @@ async function proxyApiRequest(url, request) {
   const upstream = await fetch(apiUrl.toString(), {
     headers: {
       "User-Agent": request.headers.get("User-Agent") ?? "Mozilla/5.0",
-      "Accept": requestType === "pic" ? "image/*" : "application/json"
+      "Accept": "application/json"
     }
   });
   const headers = createCorsHeaders2(upstream.headers);
-  if (requestType !== "pic" && requestType !== "lrc") {
-    if (!headers.has("Content-Type")) {
-      headers.set("Content-Type", "application/json; charset=utf-8");
-    }
+  if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json; charset=utf-8");
   }
   return new Response(upstream.body, {
     status: upstream.status,
