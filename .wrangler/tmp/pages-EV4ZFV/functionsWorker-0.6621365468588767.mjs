@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// ../.wrangler/tmp/bundle-VNkoaU/checked-fetch.js
+// ../.wrangler/tmp/bundle-LHNiOg/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -27,7 +27,7 @@ globalThis.fetch = new Proxy(globalThis.fetch, {
   }
 });
 
-// ../.wrangler/tmp/bundle-VNkoaU/strip-cf-connecting-ip-header.js
+// ../.wrangler/tmp/bundle-LHNiOg/strip-cf-connecting-ip-header.js
 function stripCfConnectingIPHeader(input, init) {
   const request = new Request(input, init);
   request.headers.delete("CF-Connecting-IP");
@@ -1651,33 +1651,9 @@ async function onRequest2({ request }) {
   if (cachedResponse) {
     return cachedResponse;
   }
-  let finalImageUrl = target.toString();
-  const isProxyUrl = target.pathname === "/proxy" && target.searchParams.get("type") === "pic";
-  console.log("Palette processing:", {
-    originalUrl: target.toString(),
-    pathname: target.pathname,
-    typeParam: target.searchParams.get("type"),
-    isProxyUrl
-  });
-  if (isProxyUrl) {
-    try {
-      console.log("Resolving proxy redirect...");
-      const redirectResponse = await fetch(target.toString(), {
-        redirect: "manual"
-      });
-      const location = redirectResponse.headers.get("Location");
-      console.log("Redirect location:", location);
-      if (location) {
-        finalImageUrl = location;
-        console.log("Using real image URL:", finalImageUrl);
-      }
-    } catch (error) {
-      console.warn("Failed to resolve proxy redirect, using original URL", error);
-    }
-  }
   let upstream;
   try {
-    upstream = await fetch(finalImageUrl, {
+    upstream = await fetch(target.toString(), {
       cf: {
         cacheTtl: 3600,
         cacheEverything: true,
@@ -1692,7 +1668,7 @@ async function onRequest2({ request }) {
     });
   } catch (error) {
     console.warn("Image resizing fetch failed, falling back to original", error);
-    upstream = await fetch(finalImageUrl, {
+    upstream = await fetch(target.toString(), {
       cf: {
         cacheTtl: 3600,
         cacheEverything: true
@@ -1897,9 +1873,7 @@ async function proxyApiRequest(url, request) {
     }
   });
   const headers = createCorsHeaders2(upstream.headers);
-  const proxyRequestType = apiUrl.searchParams.get("type");
-  const isMediaType = proxyRequestType === "pic" || proxyRequestType === "lrc" || proxyRequestType === "url";
-  if (!isMediaType && !headers.has("Content-Type")) {
+  if (!headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json; charset=utf-8");
   }
   return new Response(upstream.body, {
@@ -2514,7 +2488,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-VNkoaU/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-LHNiOg/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -2546,7 +2520,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-VNkoaU/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-LHNiOg/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

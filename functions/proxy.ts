@@ -175,13 +175,7 @@ async function proxyApiRequest(url: URL, request: Request): Promise<Response> {
   });
 
   const headers = createCorsHeaders(upstream.headers);
-
-  // 对于图片和歌词类型,保留上游的Content-Type
-  // 对于其他类型(如search, info等),如果没有Content-Type则设置为JSON
-  const proxyRequestType = apiUrl.searchParams.get("type");
-  const isMediaType = proxyRequestType === "pic" || proxyRequestType === "lrc" || proxyRequestType === "url";
-
-  if (!isMediaType && !headers.has("Content-Type")) {
+  if (!headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json; charset=utf-8");
   }
 

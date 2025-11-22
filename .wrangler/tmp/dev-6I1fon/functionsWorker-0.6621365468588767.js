@@ -1737,33 +1737,9 @@ async function onRequest2({ request }) {
   if (cachedResponse) {
     return cachedResponse;
   }
-  let finalImageUrl = target.toString();
-  const isProxyUrl = target.pathname === "/proxy" && target.searchParams.get("type") === "pic";
-  console.log("Palette processing:", {
-    originalUrl: target.toString(),
-    pathname: target.pathname,
-    typeParam: target.searchParams.get("type"),
-    isProxyUrl
-  });
-  if (isProxyUrl) {
-    try {
-      console.log("Resolving proxy redirect...");
-      const redirectResponse = await fetch(target.toString(), {
-        redirect: "manual"
-      });
-      const location = redirectResponse.headers.get("Location");
-      console.log("Redirect location:", location);
-      if (location) {
-        finalImageUrl = location;
-        console.log("Using real image URL:", finalImageUrl);
-      }
-    } catch (error) {
-      console.warn("Failed to resolve proxy redirect, using original URL", error);
-    }
-  }
   let upstream;
   try {
-    upstream = await fetch(finalImageUrl, {
+    upstream = await fetch(target.toString(), {
       cf: {
         cacheTtl: 3600,
         cacheEverything: true,
@@ -1778,7 +1754,7 @@ async function onRequest2({ request }) {
     });
   } catch (error) {
     console.warn("Image resizing fetch failed, falling back to original", error);
-    upstream = await fetch(finalImageUrl, {
+    upstream = await fetch(target.toString(), {
       cf: {
         cacheTtl: 3600,
         cacheEverything: true
@@ -1987,9 +1963,7 @@ async function proxyApiRequest(url, request) {
     }
   });
   const headers = createCorsHeaders2(upstream.headers);
-  const proxyRequestType = apiUrl.searchParams.get("type");
-  const isMediaType = proxyRequestType === "pic" || proxyRequestType === "lrc" || proxyRequestType === "url";
-  if (!isMediaType && !headers.has("Content-Type")) {
+  if (!headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json; charset=utf-8");
   }
   return new Response(upstream.body, {

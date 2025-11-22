@@ -396,37 +396,9 @@ export async function onRequest({ request }: { request: Request }): Promise<Resp
     return cachedResponse;
   }
 
-  // 如果URL包含/proxy?type=pic,先获取真实图片URL
-  let finalImageUrl = target.toString();
-  const isProxyUrl = target.pathname === "/proxy" && target.searchParams.get("type") === "pic";
-
-  console.log("Palette processing:", {
-    originalUrl: target.toString(),
-    pathname: target.pathname,
-    typeParam: target.searchParams.get("type"),
-    isProxyUrl: isProxyUrl
-  });
-
-  if (isProxyUrl) {
-    try {
-      console.log("Resolving proxy redirect...");
-      const redirectResponse = await fetch(target.toString(), {
-        redirect: "manual",
-      });
-      const location = redirectResponse.headers.get("Location");
-      console.log("Redirect location:", location);
-      if (location) {
-        finalImageUrl = location;
-        console.log("Using real image URL:", finalImageUrl);
-      }
-    } catch (error) {
-      console.warn("Failed to resolve proxy redirect, using original URL", error);
-    }
-  }
-
   let upstream: Response;
   try {
-    upstream = await fetch(finalImageUrl, {
+    upstream = await fetch(target.toString(), {
       cf: {
         cacheTtl: 3600,
         cacheEverything: true,
@@ -441,7 +413,7 @@ export async function onRequest({ request }: { request: Request }): Promise<Resp
     });
   } catch (error) {
     console.warn("Image resizing fetch failed, falling back to original", error);
-    upstream = await fetch(finalImageUrl, {
+    upstream = await fetch(target.toString(), {
       cf: {
         cacheTtl: 3600,
         cacheEverything: true,
