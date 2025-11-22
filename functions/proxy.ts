@@ -108,6 +108,65 @@ async function proxyApiRequest(url: URL, request: Request): Promise<Response> {
     return new Response("Missing type parameter", { status: 400 });
   }
 
+  // Special handling for realurl type: get the real redirected URL
+  const requestType = apiUrl.searchParams.get("type");
+  if (requestType === "realurl") {
+    // Change type to 'url' to get the audio URL from upstream API
+    apiUrl.searchParams.set("type", "url");
+
+    try {
+      // Fetch with manual redirect to capture the Location header
+      const upstream = await fetch(apiUrl.toString(), {
+        headers: {
+          "User-Agent": request.headers.get("User-Agent") ?? "Mozilla/5.0",
+        },
+        redirect: "manual",
+      });
+
+      // Get the real URL from Location header
+      const realUrl = upstream.headers.get("Location");
+
+      if (!realUrl) {
+        return new Response(JSON.stringify({
+          code: 500,
+          message: "Failed to get real audio URL",
+          data: null
+        }), {
+          status: 500,
+          headers: createCorsHeaders(new Headers({
+            "Content-Type": "application/json; charset=utf-8"
+          })),
+        });
+      }
+
+      // Return the real URL as JSON
+      const headers = createCorsHeaders(new Headers());
+      headers.set("Content-Type", "application/json; charset=utf-8");
+
+      return new Response(JSON.stringify({
+        code: 200,
+        message: "success",
+        data: {
+          url: realUrl
+        }
+      }), {
+        status: 200,
+        headers,
+      });
+    } catch (error) {
+      return new Response(JSON.stringify({
+        code: 500,
+        message: error instanceof Error ? error.message : "Unknown error",
+        data: null
+      }), {
+        status: 500,
+        headers: createCorsHeaders(new Headers({
+          "Content-Type": "application/json; charset=utf-8"
+        })),
+      });
+    }
+  }
+
   const upstream = await fetch(apiUrl.toString(), {
     headers: {
       "User-Agent": request.headers.get("User-Agent") ?? "Mozilla/5.0",

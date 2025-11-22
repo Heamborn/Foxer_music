@@ -882,6 +882,26 @@ const API = {
         return `${API.baseUrl}?type=url&id=${song.id}&source=${song.source || "netease"}&br=${br}&s=${signature}`;
     },
 
+    // 获取真实的音频URL(不通过代理)
+    getRealAudioUrl: async (song, quality = "320") => {
+        const signature = API.generateSignature();
+        // Map quality values: 128→128k, 192→320k, 320→flac, 999→flac24bit
+        const qualityMap = { "128": "128k", "192": "320k", "320": "flac", "999": "flac24bit" };
+        const br = qualityMap[quality] || "320k";
+        const url = `${API.baseUrl}?type=realurl&id=${song.id}&source=${song.source || "netease"}&br=${br}&s=${signature}`;
+
+        try {
+            const data = await API.fetchJson(url);
+            if (data && data.code === 200 && data.data && data.data.url) {
+                return data.data.url;
+            }
+            throw new Error(data?.message || "获取真实音频URL失败");
+        } catch (error) {
+            console.error("获取真实音频URL失败:", error);
+            throw error;
+        }
+    },
+
     getLyric: (song) => {
         const signature = API.generateSignature();
         return `${API.baseUrl}?type=lrc&id=${song.lyric_id || song.id}&source=${song.source || "netease"}&s=${signature}`;
@@ -891,6 +911,7 @@ const API = {
         const signature = API.generateSignature();
         return `${API.baseUrl}?type=pic&id=${song.pic_id || song.id}&source=${song.source || "netease"}&s=${signature}`;
     }
+
 };
 
 Object.freeze(API);
@@ -5230,15 +5251,25 @@ async function playSong(song, options = {}) {
 
         state.pendingSeekTime = startTime > 0 ? startTime : null;
 
-        // TuneHub API returns audio data directly, use the proxy URL as audio source  
+        // 获取真实的音频URL(不通过代理)
         const quality = state.playbackQuality || '320';
-        const audioUrl = API.getSongUrl(song, quality);
-        debugLog(`获取音频URL: ${audioUrl}`);
+        debugLog(`正在获取真实音频URL: ${song.name}, 音质: ${quality}`);
 
-        // Use the proxy URL directly as the audio source
-        const proxiedAudioUrl = audioUrl;
-        const candidateAudioUrls = [proxiedAudioUrl];
+        let realAudioUrl;
+        try {
+            realAudioUrl = await API.getRealAudioUrl(song, quality);
+            debugLog(`获取到真实音频URL: ${realAudioUrl}`);
+        } catch (error) {
+            console.error("获取真实音频URL失败,回退到代理模式:", error);
+            // 如果获取真实URL失败,回退到使用代理URL
+            realAudioUrl = API.getSongUrl(song, quality);
+            debugLog(`回退到代理URL: ${realAudioUrl}`);
+        }
+
+        // 使用真实URL作为音频源
+        const candidateAudioUrls = [realAudioUrl];
         debugLog(`候选音频URL: ${candidateAudioUrls.join(', ')}`);
+
 
         state.currentSong = song;
         const primaryAudioUrl = candidateAudioUrls[0];
