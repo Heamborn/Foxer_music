@@ -5251,34 +5251,32 @@ async function playSong(song, options = {}) {
 
         state.pendingSeekTime = startTime > 0 ? startTime : null;
 
-        // 获取真实的音频URL(不通过代理)
+        // 获取音频URL - 优先使用真实URL，失败时自动降级到代理
         const quality = state.playbackQuality || '320';
-        debugLog(`正在获取真实音频URL: ${song.name}, 音质: ${quality}`);
+        const proxyUrl = API.getSongUrl(song, quality);
 
-        let realAudioUrl;
-        let useProxy = false;
+        debugLog(`正在获取音频URL: ${song.name}, 音质: ${quality}`);
 
-        // 酷我音乐的HTTPS证书有问题,直接使用代理模式
-        if (song.source === 'kuwo') {
-            debugLog('酷我音乐检测到HTTPS证书问题,使用代理模式');
-            realAudioUrl = API.getSongUrl(song, quality);
-            useProxy = true;
-        } else {
-            try {
-                realAudioUrl = await API.getRealAudioUrl(song, quality);
-                debugLog(`获取到真实音频URL: ${realAudioUrl}`);
-            } catch (error) {
-                console.error("获取真实音频URL失败,回退到代理模式:", error);
-                // 如果获取真实URL失败,回退到使用代理URL
-                realAudioUrl = API.getSongUrl(song, quality);
-                useProxy = true;
-                debugLog(`回退到代理URL: ${realAudioUrl}`);
-            }
+        let candidateAudioUrls = [];
+
+        try {
+            // 尝试获取真实URL
+            const realUrl = await API.getRealAudioUrl(song, quality);
+            debugLog(`获取到真实音频URL: ${realUrl}`);
+
+            // 将HTTP URL转换为HTTPS，避免混合内容错误
+            const httpsUrl = preferHttpsUrl(realUrl);
+            debugLog(`转换为HTTPS URL: ${httpsUrl}`);
+
+            // 优先使用真实URL，代理URL作为备选
+            candidateAudioUrls = [httpsUrl, proxyUrl];
+            debugLog(`候选音频URL: 真实URL (优先), 代理URL (备选)`);
+        } catch (error) {
+            console.error("获取真实音频URL失败,将使用代理模式:", error);
+            // 如果获取真实URL失败,只使用代理URL
+            candidateAudioUrls = [proxyUrl];
+            debugLog(`使用代理URL: ${proxyUrl}`);
         }
-
-        // 使用真实URL或代理URL作为音频源
-        const candidateAudioUrls = [realAudioUrl];
-        debugLog(`候选音频URL: ${candidateAudioUrls.join(', ')}${useProxy ? ' (代理模式)' : ''}`);
 
         state.currentSong = song;
         const primaryAudioUrl = candidateAudioUrls[0];
